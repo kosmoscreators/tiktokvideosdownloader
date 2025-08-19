@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  tiktok-scraper:
+    build: .
+    volumes:
+      - ./downloads:/usr/app/files
+      - ./history:/tmp
+    environment:
+      - SCRAPING_FROM_DOCKER=1
+    command: ["--help"]
+    
+  # Example service for scraping user feed
+  tiktok-user:
+    build: .
+    volumes:
+      - ./downloads:/usr/app/files
+      - ./history:/tmp
+    environment:
+      - SCRAPING_FROM_DOCKER=1
+    command: ["user", "tiktok", "-n", "10", "-d", "-t", "json"]
+    
+  # Example service for scraping hashtag feed  
+  tiktok-hashtag:
+    build: .
+    volumes:
+      - ./downloads:/usr/app/files
+      - ./history:/tmp
+    environment:
+      - SCRAPING_FROM_DOCKER=1
+    command: ["hashtag", "dance", "-n", "5", "-d", "-t", "json"]

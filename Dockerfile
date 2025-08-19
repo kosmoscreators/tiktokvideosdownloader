@@ -1,34 +1,38 @@
-#Building Scraper
-FROM node:12.22-alpine AS tiktok_scraper.build
+# Use official Node.js runtime as base image
+FROM node:18-slim
 
+# Set working directory
 WORKDIR /usr/app
 
-RUN apk update && apk add --update python3 pkgconfig pixman-dev 
-RUN apk add --update cairo-dev pango-dev make g++
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json tsconfig.json .prettierrc.js bin ./
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# Copy source code
 COPY ./src ./src
-
-RUN npm i
-RUN npm run docker:build
-RUN rm -rf src node_modules
-
-
-#Using Scraper
-FROM node:12.22-alpine AS tiktok_scraper.use
-
-WORKDIR /usr/app
-
-RUN apk update && apk add --update python3 pkgconfig pixman-dev
-RUN apk add --update cairo-dev pango-dev make g++
-
-COPY --from=tiktok_scraper.build ./usr/app ./
 COPY ./bin ./bin
-COPY package* ./
 
+# Build the project
+RUN npm run build
+
+# Remove source files and dev dependencies
+RUN rm -rf src && npm prune --production
+
+# Set environment variable
 ENV SCRAPING_FROM_DOCKER=1
 
+# Create files directory
 RUN mkdir -p files
-RUN npm i --production
 
-ENTRYPOINT [ "node",  "bin/cli.js" ]
+# Set the entrypoint
+ENTRYPOINT [ "node", "bin/cli.js" ]

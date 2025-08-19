@@ -166,7 +166,7 @@ export class TikTokScraper extends EventEmitter {
         this.download = download;
         this.filepath = process.env.SCRAPING_FROM_DOCKER ? '/usr/app/files' : filepath || '';
         this.fileName = fileName;
-        this.json2csvParser = new Parser({ flatten: true });
+        this.json2csvParser = new Parser({});
         this.filetype = filetype;
         this.input = input;
         this.test = test;

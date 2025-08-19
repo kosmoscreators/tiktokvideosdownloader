@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TikTok Session Extractor</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .step { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .result { background: #e8f5e8; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .warning { background: #ffe8e8; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🎬 TikTok Session Cookie Extractor for Cat Videos</h1>
+    
+    <div class="warning">
+        <strong>⚠️ Your current cookies are missing sid_tt!</strong><br>
+        This is needed for the TikTok scraper to work properly.
+    </div>
+
+    <div class="step">
+        <h2>Step 1: Get Proper Session</h2>
+        <p>1. Open a NEW tab and go to <strong>https://www.tiktok.com</strong></p>
+        <p>2. Make sure you're logged in</p>
+        <p>3. Search for something like "cats" or browse videos</p>
+        <p>4. Come back to this tab and click the button below:</p>
+        <button onclick="extractSession()">Extract Session Cookie</button>
+    </div>
+
+    <div id="results" style="display:none;">
+        <div class="result">
+            <h3>✅ Session Found!</h3>
+            <p>Copy this session cookie:</p>
+            <textarea id="sessionOutput" readonly></textarea>
+            <button onclick="copyToClipboard()">Copy to Clipboard</button>
+            <button onclick="testDownload()">Test Download</button>
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>Step 2: Use the Session</h2>
+        <p>Once you have the session cookie, run this command:</p>
+        <code>
+            tiktok-scraper hashtag catcare -n 5 -d -w -t json --session "YOUR_SESSION_HERE" --filepath ./cat-education-videos
+        </code>
+    </div>
+
+    <script>
+        function extractSession() {
+            // Try to get sid_tt cookie
+            const cookies = document.cookie.split(';');
+            let sidTt = '';
+            
+            for (let cookie of cookies) {
+                const trimmed = cookie.trim();
+                if (trimmed.startsWith('sid_tt=')) {
+                    sidTt = trimmed;
+                    break;
+                }
+            }
+            
+            if (sidTt) {
+                document.getElementById('sessionOutput').value = sidTt + ';';
+                document.getElementById('results').style.display = 'block';
+                alert('✅ Session found! Copy the text from the box below.');
+            } else {
+                // Try alternative approach
+                fetch('/api/recommend/item_list/').then(response => {
+                    // This might set the proper cookies
+                    return response;
+                }).catch(() => {});
+                
+                // Wait a bit and try again
+                setTimeout(() => {
+                    const newCookies = document.cookie.split(';');
+                    for (let cookie of newCookies) {
+                        const trimmed = cookie.trim();
+                        if (trimmed.startsWith('sid_tt=')) {
+                            document.getElementById('sessionOutput').value = trimmed + ';';
+                            document.getElementById('results').style.display = 'block';
+                            alert('✅ Session found after API call! Copy the text from the box below.');
+                            return;
+                        }
+                    }
+                    
+                    alert('❌ Still no sid_tt cookie found. Try:\n1. Log out and log back in\n2. Browse some videos first\n3. Try on mobile.tiktok.com instead');
+                }, 2000);
+            }
+        }
+        
+        function copyToClipboard() {
+            const textarea = document.getElementById('sessionOutput');
+            textarea.select();
+            document.execCommand('copy');
+            alert('📋 Copied to clipboard!');
+        }
+        
+        function testDownload() {
+            const session = document.getElementById('sessionOutput').value;
+            alert('🔧 Run this command in PowerShell:\n\ntiktok-scraper hashtag catcare -n 2 -d -w -t json --session "' + session + '" --filepath ./cat-education-videos');
+        }
+        
+        // Auto-check on page load
+        window.onload = function() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                if (cookie.trim().startsWith('sid_tt=')) {
+                    extractSession();
+                    break;
+                }
+            }
+        };
+    </script>
+</body>
+</html>
